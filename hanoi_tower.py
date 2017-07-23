@@ -3,52 +3,54 @@ Random move hanoi tower: at each step one of all valid moves is taken at uniform
 for the center of mass for all plates after T random move
 '''
 
-from random import randint
-from __future__ import division
-import numpy as np
-
-def validstate(position,N):
-# return all valid states given the previous position 
+def validstate(state,N):
+# return all valid states given the previous state
     space = list()
-    l = len(position)
+    l = len(state)
     for i in range(l):
-        if position[i] + 1 < N and (position[i] + 1) not in position[0:i] and position[i] not in position[0:i]:
-            new_position = position[:]
-            new_position[i] += 1
-            if new_position not in space:
-                space.append(new_position)
-        if position[i] - 1 > -1 and (position[i] - 1) not in position[0:i] and position[i] not in position[0:i]:
-            new_position = position[:]
-            new_position[i] -= 1
-            if new_position not in space:
-                space.append(new_position)
+        if state[i] + 1 < N and (state[i] + 1) not in state[0:i] and state[i] not in state[0:i]:
+            new_state = state[:]
+            new_state[i] += 1
+            if new_state not in space:
+                space.append(new_state)
+        if state[i] - 1 > -1 and (state[i] - 1) not in state[0:i] and state[i] not in state[0:i]:
+            new_state = state[:]
+            new_state[i] -= 1
+            if new_state not in space:
+                space.append(new_state)
     return space
 
-def initial_position(M):
-    ini_position = []
+def initial_state_space(M):
+    ini_state = []
     for i in range(M):
-        ini_position.append(0)
-    return ini_position
+        ini_state.append(0)
+    ini_space = list()
+    ini_space.append(ini_state)
+    return ini_space
 
-def stat(M,N,T,n=1000000):
+def endstate_space(M,N,T):
+    initial_space = initial_state_space(M)
+    space_old = initial_space
+    for t in range(T):
+        space_new = []
+        for state in space_old:
+            space = validstate(state,N)
+            space_new += space
+        space_old = space_new
+    return space_old
+
+def stats(space):
     center_list = list()
-    for iter in range(n):
-        ini_position = initial_position(M)
-        position = ini_position
-        for t in range(T):
-            space = validstate(position,N)
-            position = space[randint(0,len(space)-1)]
-        sum_p = 0
+    for item in space:
         sum_m = 0
-        for i in range(M):
+        sum_p = 0
+        for i in range(len(item)):
             sum_m += (i+1)
-            sum_p += (i+1)*position[i]
+            sum_p += (i+1)*item[i]
         center = sum_p/sum_m
         center_list.append(center)
-
     return np.array(center_list).mean(), np.array(center_list).std()
 
-stat(3,3,16)
+stats(endstate_space(3,3,16))
 
-stat(6,6,256)
-        
+stats(endstate_space(6,6,256))
